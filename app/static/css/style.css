@@ -124,8 +124,15 @@ h6 { font-size: 1rem; }
     padding: 0.5rem;
     display: none;
     margin-top: 0.5rem;
+    z-index: 1000;
 }
 
+/* Show dropdown when active class is added */
+.nav-dropdown.active .nav-dropdown-menu {
+    display: block;
+}
+
+/* Keep hover functionality as backup */
 .nav-dropdown:hover .nav-dropdown-menu {
     display: block;
 }

@@ -3,91 +3,412 @@
 {% block title %}Verify OTP - DayFlow HRMS{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5">
-            <div class="card shadow">
-                <div class="card-body p-5">
-                    <div class="text-center mb-4">
-                        <i class="fas fa-shield-alt fa-3x text-primary mb-3"></i>
-                        <h3 class="card-title">Verify OTP</h3>
-                        <p class="text-muted">
-                            We've sent a verification code to<br>
-                            <strong>{{ email }}</strong>
-                        </p>
-                    </div>
+<div class="otp-container">
+    <div class="otp-wrapper">
+        <div class="otp-card">
+            <!-- Animated Icon -->
+            <div class="icon-wrapper">
+                <div class="icon-circle">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="pulse-ring"></div>
+            </div>
 
-                    <form method="POST" action="{{ url_for('auth.verify_otp') }}">
-                        <div class="mb-4">
-                            <label for="otp" class="form-label">Enter OTP Code</label>
-                            <input type="text" 
-                                   class="form-control form-control-lg text-center" 
-                                   id="otp" 
-                                   name="otp" 
-                                   maxlength="6"
-                                   pattern="[0-9]{6}"
-                                   placeholder="000000"
-                                   required 
-                                   autofocus
-                                   style="letter-spacing: 8px; font-size: 24px;">
-                            <small class="form-text text-muted">
-                                Enter the 6-digit code sent to your email
-                            </small>
-                        </div>
+            <!-- Header -->
+            <div class="otp-header">
+                <h2>Email Verification</h2>
+                <p class="subtitle">
+                    We've sent a 6-digit code to<br>
+                    <span class="email-highlight">{{ email }}</span>
+                </p>
+            </div>
 
-                        <button type="submit" class="btn btn-primary w-100 mb-3">
-                            <i class="fas fa-check-circle"></i> Verify OTP
-                        </button>
-                    </form>
+            <!-- OTP Input -->
+            <form method="POST" action="{{ url_for('auth.verify_otp') }}" class="otp-form">
+                <div class="otp-input-group">
+                    <input type="text" 
+                           class="otp-input" 
+                           id="otp" 
+                           name="otp" 
+                           maxlength="6"
+                           pattern="[0-9]{6}"
+                           placeholder="● ● ● ● ● ●"
+                           required 
+                           autofocus>
+                    <label for="otp" class="otp-label">Enter OTP Code</label>
+                </div>
 
-                    <div class="text-center">
-                        <p class="mb-2">Didn't receive the code?</p>
-                        <form method="POST" action="{{ url_for('auth.resend_otp') }}" class="d-inline">
-                            <button type="submit" class="btn btn-link p-0">
-                                <i class="fas fa-redo"></i> Resend OTP
-                            </button>
-                        </form>
-                    </div>
+                <button type="submit" class="btn-verify">
+                    <span class="btn-text">Verify & Continue</span>
+                    <i class="fas fa-arrow-right btn-icon"></i>
+                </button>
+            </form>
 
-                    <hr class="my-4">
+            <!-- Resend Section -->
+            <div class="resend-section">
+                <p class="resend-text">Didn't receive the code?</p>
+                <form method="POST" action="{{ url_for('auth.resend_otp') }}" class="d-inline">
+                    <button type="submit" class="btn-resend">
+                        <i class="fas fa-redo"></i> Resend OTP
+                    </button>
+                </form>
+            </div>
 
-                    <div class="text-center">
-                        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary">
-                            <i class="fas fa-arrow-left"></i> Back to Login
-                        </a>
-                    </div>
+            <!-- Timer & Info -->
+            <div class="info-section">
+                <div class="timer-box">
+                    <i class="fas fa-clock"></i>
+                    <span id="timer">Valid for {{ config.OTP_EXPIRY_MINUTES or 10 }} minutes</span>
+                </div>
+                <div class="security-note">
+                    <i class="fas fa-lock"></i>
+                    <small>Your security is our priority. Never share this code.</small>
                 </div>
             </div>
 
-            <div class="card mt-3 border-warning">
-                <div class="card-body py-2">
-                    <small class="text-muted">
-                        <i class="fas fa-info-circle text-warning"></i>
-                        The OTP is valid for {{ config.OTP_EXPIRY_MINUTES or 10 }} minutes. 
-                        For security, do not share this code with anyone.
-                    </small>
-                </div>
-            </div>
+            <!-- Back Button -->
+            <a href="{{ url_for('auth.login') }}" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Back to Login
+            </a>
         </div>
     </div>
 </div>
 
 <style>
-    /* Remove spinner arrows from number input */
-    input[type="text"]#otp::-webkit-outer-spin-button,
-    input[type="text"]#otp::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
+    .otp-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
     }
-    
-    input[type="text"]#otp {
-        -moz-appearance: textfield;
+
+    .otp-wrapper {
+        width: 100%;
+        max-width: 480px;
     }
-    
-    /* Add focus effect */
-    input#otp:focus {
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-        border-color: #86b7fe;
+
+    .otp-card {
+        background: white;
+        border-radius: 24px;
+        padding: 48px 32px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: slideUp 0.5s ease-out;
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Icon Animation */
+    .icon-wrapper {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        margin-bottom: 32px;
+    }
+
+    .icon-circle {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        z-index: 2;
+        animation: bounce 2s infinite;
+    }
+
+    .icon-circle i {
+        color: white;
+        font-size: 36px;
+    }
+
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+
+    .pulse-ring {
+        position: absolute;
+        width: 80px;
+        height: 80px;
+        border: 3px solid #667eea;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        100% {
+            transform: scale(1.5);
+            opacity: 0;
+        }
+    }
+
+    /* Header */
+    .otp-header {
+        text-align: center;
+        margin-bottom: 36px;
+    }
+
+    .otp-header h2 {
+        font-size: 28px;
+        font-weight: 700;
+        color: #1a202c;
+        margin-bottom: 12px;
+    }
+
+    .subtitle {
+        color: #718096;
+        font-size: 15px;
+        line-height: 1.6;
+    }
+
+    .email-highlight {
+        color: #667eea;
+        font-weight: 600;
+    }
+
+    /* OTP Input */
+    .otp-form {
+        margin-bottom: 24px;
+    }
+
+    .otp-input-group {
+        position: relative;
+        margin-bottom: 24px;
+    }
+
+    .otp-label {
+        position: absolute;
+        top: -10px;
+        left: 16px;
+        background: white;
+        padding: 0 8px;
+        color: #667eea;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .otp-input {
+        width: 100%;
+        padding: 20px;
+        font-size: 32px;
+        font-weight: 700;
+        letter-spacing: 12px;
+        text-align: center;
+        border: 2px solid #e2e8f0;
+        border-radius: 16px;
+        transition: all 0.3s ease;
+        background: #f7fafc;
+    }
+
+    .otp-input:focus {
+        outline: none;
+        border-color: #667eea;
+        background: white;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    }
+
+    .otp-input::placeholder {
+        color: #cbd5e0;
+        letter-spacing: 16px;
+    }
+
+    /* Verify Button */
+    .btn-verify {
+        width: 100%;
+        padding: 18px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .btn-verify:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-verify:active {
+        transform: translateY(0);
+    }
+
+    .btn-icon {
+        transition: transform 0.3s ease;
+    }
+
+    .btn-verify:hover .btn-icon {
+        transform: translateX(4px);
+    }
+
+    /* Resend Section */
+    .resend-section {
+        text-align: center;
+        margin: 24px 0;
+        padding: 20px 0;
+        border-top: 1px solid #e2e8f0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .resend-text {
+        color: #718096;
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    .btn-resend {
+        background: none;
+        border: none;
+        color: #667eea;
+        font-weight: 600;
+        font-size: 15px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        padding: 8px 16px;
+        border-radius: 8px;
+    }
+
+    .btn-resend:hover {
+        background: #f7fafc;
+        color: #764ba2;
+    }
+
+    .btn-resend i {
+        margin-right: 6px;
+        animation: rotate 1s ease-in-out;
+    }
+
+    .btn-resend:hover i {
+        animation: rotate 0.6s ease-in-out infinite;
+    }
+
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    /* Info Section */
+    .info-section {
+        margin: 24px 0;
+    }
+
+    .timer-box {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        padding: 12px 20px;
+        border-radius: 12px;
+        text-align: center;
+        margin-bottom: 16px;
+        color: #92400e;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .timer-box i {
+        margin-right: 8px;
+        color: #f59e0b;
+    }
+
+    .security-note {
+        text-align: center;
+        color: #718096;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .security-note i {
+        color: #48bb78;
+    }
+
+    /* Back Button */
+    .btn-back {
+        display: block;
+        text-align: center;
+        color: #718096;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        padding: 12px;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        margin-top: 16px;
+    }
+
+    .btn-back:hover {
+        background: #f7fafc;
+        color: #667eea;
+    }
+
+    .btn-back i {
+        margin-right: 6px;
+    }
+
+    /* Responsive */
+    @media (max-width: 576px) {
+        .otp-card {
+            padding: 36px 24px;
+        }
+
+        .otp-header h2 {
+            font-size: 24px;
+        }
+
+        .otp-input {
+            font-size: 28px;
+            letter-spacing: 8px;
+        }
+
+        .icon-circle {
+            width: 70px;
+            height: 70px;
+        }
+
+        .icon-circle i {
+            font-size: 32px;
+        }
+    }
+
+    /* Loading State */
+    .btn-verify.loading {
+        pointer-events: none;
+        opacity: 0.7;
+    }
+
+    .btn-verify.loading .btn-text:after {
+        content: '';
+        animation: dots 1.5s steps(4, end) infinite;
+    }
+
+    @keyframes dots {
+        0%, 20% { content: ''; }
+        40% { content: '.'; }
+        60% { content: '..'; }
+        80%, 100% { content: '...'; }
     }
 </style>
 
