@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Create Payroll - Admin{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 2rem; max-width: 900px;">
+    <div class="page-header">
+        <h1>Create Payroll</h1>
+        <a href="{{ url_for('admin.payroll') }}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Employee *</label>
+                            <select name="employee_id" class="form-control" id="employee_select" required>
+                                <option value="">Select Employee</option>
+                                {% for emp in employees %}
+                                <option value="{{ emp.id }}" data-salary="{{ emp.salary }}">{{ emp.full_name }} ({{ emp.user.employee_id }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Month *</label>
+                            <select name="month" class="form-control" required>
+                                {% for m in range(1, 13) %}
+                                <option value="{{ m }}" {% if m == date.today().month %}selected{% endif %}>
+                                    {{ ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][m-1] }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Year *</label>
+                            <select name="year" class="form-control" required>
+                                {% for y in range(date.today().year-1, date.today().year+2) %}
+                                <option value="{{ y }}" {% if y == date.today().year %}selected{% endif %}>{{ y }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Basic Salary *</label>
+                            <input type="number" name="basic_salary" id="basic_salary" class="form-control" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Allowances</label>
+                            <input type="number" name="allowances" id="allowances" class="form-control" step="0.01" value="0">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Deductions</label>
+                            <input type="number" name="deductions" id="deductions" class="form-control" step="0.01" value="0">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Net Salary</label>
+                            <input type="number" name="net_salary" id="net_salary" class="form-control" step="0.01" readonly>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Create Payroll</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('employee_select').addEventListener('change', function() {
+    const salary = this.options[this.selectedIndex].getAttribute('data-salary');
+    if (salary) {
+        document.getElementById('basic_salary').value = salary;
+        calculateNet();
+    }
+});
+
+function calculateNet() {
+    const basic = parseFloat(document.getElementById('basic_salary').value) || 0;
+    const allowances = parseFloat(document.getElementById('allowances').value) || 0;
+    const deductions = parseFloat(document.getElementById('deductions').value) || 0;
+    document.getElementById('net_salary').value = (basic + allowances - deductions).toFixed(2);
+}
+
+['basic_salary', 'allowances', 'deductions'].forEach(id => {
+    document.getElementById(id).addEventListener('input', calculateNet);
+});
+</script>
+{% endblock %}
