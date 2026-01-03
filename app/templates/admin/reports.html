@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - Admin - Dayflow HRMS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title">Reports & Analytics 📊</h1>
+        <p class="page-subtitle">Generate and view comprehensive reports</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="stats-grid">
+        <div class="stat-card" style="cursor: pointer;" onclick="window.location.href='{{ url_for('admin.attendance_report') }}'">
+            <div class="stat-icon success">✓</div>
+            <div class="stat-content">
+                <h3>Attendance Report</h3>
+                <p>View monthly attendance statistics</p>
+            </div>
+        </div>
+        
+        <div class="stat-card" style="cursor: pointer;" onclick="window.location.href='{{ url_for('admin.leave_report') }}'">
+            <div class="stat-icon warning">📅</div>
+            <div class="stat-content">
+                <h3>Leave Report</h3>
+                <p>Track employee leave patterns</p>
+            </div>
+        </div>
+        
+        <div class="stat-card" style="cursor: pointer;" onclick="window.location.href='{{ url_for('admin.payroll_report') }}'">
+            <div class="stat-icon primary">💰</div>
+            <div class="stat-content">
+                <h3>Payroll Report</h3>
+                <p>Monthly salary disbursement summary</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Available Reports</h3>
+        </div>
+        <div class="card-body">
+            <div style="display: grid; gap: 1.5rem;">
+                <div style="border: 2px solid var(--border-color); border-radius: 12px; padding: 1.5rem;">
+                    <h4 style="margin-bottom: 0.5rem;">📋 Attendance Report</h4>
+                    <p class="text-muted" style="margin-bottom: 1rem;">Generate detailed attendance reports for any month. View present, absent, half-day, and leave statistics for all employees.</p>
+                    <a href="{{ url_for('admin.attendance_report') }}" class="btn btn-primary">Generate Report</a>
+                </div>
+                
+                <div style="border: 2px solid var(--border-color); border-radius: 12px; padding: 1.5rem;">
+                    <h4 style="margin-bottom: 0.5rem;">📅 Leave Report</h4>
+                    <p class="text-muted" style="margin-bottom: 1rem;">Analyze leave patterns, approved vs rejected requests, and total leave days taken by employees.</p>
+                    <a href="{{ url_for('admin.leave_report') }}" class="btn btn-primary">Generate Report</a>
+                </div>
+                
+                <div style="border: 2px solid var(--border-color); border-radius: 12px; padding: 1.5rem;">
+                    <h4 style="margin-bottom: 0.5rem;">💰 Payroll Report</h4>
+                    <p class="text-muted" style="margin-bottom: 1rem;">View comprehensive payroll summary including gross salary, deductions, and net salary for all employees.</p>
+                    <a href="{{ url_for('admin.payroll_report') }}" class="btn btn-primary">Generate Report</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Quick Stats</h3>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Report Type</th>
+                            <th>Description</th>
+                            <th>Frequency</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Attendance</strong></td>
+                            <td>Employee attendance tracking and analysis</td>
+                            <td><span class="badge badge-info">Monthly</span></td>
+                            <td><a href="{{ url_for('admin.attendance_report') }}" class="btn btn-sm btn-outline">View</a></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Leave</strong></td>
+                            <td>Leave requests and approval statistics</td>
+                            <td><span class="badge badge-warning">Yearly</span></td>
+                            <td><a href="{{ url_for('admin.leave_report') }}" class="btn btn-sm btn-outline">View</a></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Payroll</strong></td>
+                            <td>Salary disbursement and payroll summary</td>
+                            <td><span class="badge badge-success">Monthly</span></td>
+                            <td><a href="{{ url_for('admin.payroll_report') }}" class="btn btn-sm btn-outline">View</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

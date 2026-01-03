@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Add Pre-Registered Employee - DayFlow HRMS{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-user-plus"></i> Add Pre-Registered Employee</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Pre-register an employee to allow them to sign up. 
+                        They must use the exact Employee ID and Email provided here.
+                    </div>
+
+                    <form method="POST" action="{{ url_for('admin.add_pre_registered_employee') }}">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="employee_id" class="form-label">Employee ID <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="employee_id" name="employee_id" required>
+                                <small class="form-text text-muted">e.g., EMP001, E12345</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                                <small class="form-text text-muted">Official work email</small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="first_name" class="form-label">First Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="first_name" name="first_name" required>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="last_name" class="form-label">Last Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="last_name" name="last_name" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="department" class="form-label">Department</label>
+                                <input type="text" class="form-control" id="department" name="department">
+                                <small class="form-text text-muted">e.g., IT, HR, Finance</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="designation" class="form-label">Designation</label>
+                                <input type="text" class="form-control" id="designation" name="designation">
+                                <small class="form-text text-muted">e.g., Software Engineer, Manager</small>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> <strong>Important:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Employee must use this exact Email and Employee ID to register</li>
+                                <li>They cannot register with any other email or ID</li>
+                                <li>This prevents unauthorized access and duplicate accounts</li>
+                            </ul>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save"></i> Add Pre-Registered Employee
+                            </button>
+                            <a href="{{ url_for('admin.pre_registered_employees') }}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

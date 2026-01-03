@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Leave Requests - Admin - Dayflow HRMS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title">Leave Requests Management 📅</h1>
+        <p class="page-subtitle">Review and manage employee leave requests</p>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Filter -->
+    <div class="card">
+        <div class="card-body">
+            <form method="GET" style="display: flex; gap: 1rem; align-items: end;">
+                <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                    <label class="form-label" for="status">Filter by Status</label>
+                    <select id="status" name="status" class="form-control form-select" onchange="this.form.submit()">
+                        <option value="">All Status</option>
+                        <option value="Pending" {{ 'selected' if status_filter == 'Pending' else '' }}>Pending</option>
+                        <option value="Approved" {{ 'selected' if status_filter == 'Approved' else '' }}>Approved</option>
+                        <option value="Rejected" {{ 'selected' if status_filter == 'Rejected' else '' }}>Rejected</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Leave Requests Table -->
+    <div class="card">
+        <div class="card-body">
+            {% if leave_requests.items %}
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Leave Type</th>
+                            <th>Duration</th>
+                            <th>Days</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                            <th>Applied On</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for leave, employee in leave_requests.items %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('admin.employee_detail', employee_id=employee.id) }}" style="color: var(--primary-color); font-weight: 600; text-decoration: none;">
+                                    {{ employee.full_name }}
+                                </a>
+                            </td>
+                            <td>{{ leave.leave_type }}</td>
+                            <td>{{ leave.start_date.strftime('%d %b') }} - {{ leave.end_date.strftime('%d %b %Y') }}</td>
+                            <td><strong>{{ leave.days }}</strong></td>
+                            <td style="max-width: 200px;">{{ leave.reason[:50] }}{{ '...' if leave.reason|length > 50 else '' }}</td>
+                            <td>
+                                <span class="badge badge-{{ 'success' if leave.status == 'Approved' else 'danger' if leave.status == 'Rejected' else 'warning' }}">
+                                    {{ leave.status }}
+                                </span>
+                            </td>
+                            <td>{{ leave.created_at.strftime('%d %b %Y') }}</td>
+                            <td>
+                                {% if leave.status == 'Pending' %}
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <button onclick="openModal('approveModal{{ leave.id }}')" class="btn btn-success btn-sm">✓</button>
+                                    <button onclick="openModal('rejectModal{{ leave.id }}')" class="btn btn-danger btn-sm">✗</button>
+                                </div>
+                                
+                                <!-- Approve Modal -->
+                                <div id="approveModal{{ leave.id }}" class="modal">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h3>Approve Leave Request</h3>
+                                            <button type="button" class="modal-close" onclick="closeModal('approveModal{{ leave.id }}')">&times;</button>
+                                        </div>
+                                        <form method="POST" action="{{ url_for('admin.approve_leave', leave_id=leave.id) }}">
+                                            <div class="form-group">
+                                                <label class="form-label">Comment (Optional)</label>
+                                                <textarea name="admin_comment" class="form-control" rows="3" placeholder="Add any comments..."></textarea>
+                                            </div>
+                                            <div style="display: flex; gap: 1rem;">
+                                                <button type="submit" class="btn btn-success">Approve</button>
+                                                <button type="button" class="btn btn-secondary" onclick="closeModal('approveModal{{ leave.id }}')">Cancel</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                                
+                                <!-- Reject Modal -->
+                                <div id="rejectModal{{ leave.id }}" class="modal">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h3>Reject Leave Request</h3>
+                                            <button type="button" class="modal-close" onclick="closeModal('rejectModal{{ leave.id }}')">&times;</button>
+                                        </div>
+                                        <form method="POST" action="{{ url_for('admin.reject_leave', leave_id=leave.id) }}">
+                                            <div class="form-group">
+                                                <label class="form-label">Reason for Rejection *</label>
+                                                <textarea name="admin_comment" class="form-control" rows="3" placeholder="Please provide a reason..." required></textarea>
+                                            </div>
+                                            <div style="display: flex; gap: 1rem;">
+                                                <button type="submit" class="btn btn-danger">Reject</button>
+                                                <button type="button" class="btn btn-secondary" onclick="closeModal('rejectModal{{ leave.id }}')">Cancel</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <small class="text-muted">{{ leave.status }}</small>
+                                {% if leave.admin_comment %}
+                                <br><small>{{ leave.admin_comment }}</small>
+                                {% endif %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if leave_requests.pages > 1 %}
+            <div class="pagination">
+                {% if leave_requests.has_prev %}
+                <a href="{{ url_for('admin.leave_requests', page=leave_requests.prev_num, status=status_filter) }}" class="page-link">Previous</a>
+                {% endif %}
+                
+                {% for page in leave_requests.iter_pages() %}
+                    {% if page %}
+                    <a href="{{ url_for('admin.leave_requests', page=page, status=status_filter) }}" 
+                       class="page-link {{ 'active' if page == leave_requests.page else '' }}">{{ page }}</a>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if leave_requests.has_next %}
+                <a href="{{ url_for('admin.leave_requests', page=leave_requests.next_num, status=status_filter) }}" class="page-link">Next</a>
+                {% endif %}
+            </div>
+            {% endif %}
+            {% else %}
+            <p class="text-center text-muted">No leave requests found.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

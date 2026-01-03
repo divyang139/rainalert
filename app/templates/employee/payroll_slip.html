@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Salary Slip - {{ ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][payroll.month-1] }} {{ payroll.year }} - Dayflow HRMS{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 900px; margin-top: 2rem;">
+    <div class="card">
+        <div class="card-body" id="salarySlipContent">
+            <!-- Header -->
+            <div style="text-align: center; border-bottom: 3px solid var(--primary-color); padding-bottom: 1.5rem; margin-bottom: 2rem;">
+                <h1 style="color: var(--primary-color); margin-bottom: 0.5rem;">Dayflow</h1>
+                <h3 style="margin-bottom: 1rem;">Salary Slip</h3>
+                <p class="text-muted">{{ ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][payroll.month-1] }} {{ payroll.year }}</p>
+            </div>
+            
+            <!-- Employee Details -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                <div>
+                    <h4 style="margin-bottom: 1rem; color: var(--primary-color);">Employee Details</h4>
+                    <table style="width: 100%;">
+                        <tr>
+                            <td style="padding: 0.5rem 0; color: var(--text-muted);">Employee ID:</td>
+                            <td style="padding: 0.5rem 0; font-weight: 600;">{{ employee.user.employee_id }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.5rem 0; color: var(--text-muted);">Name:</td>
+                            <td style="padding: 0.5rem 0; font-weight: 600;">{{ employee.full_name }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.5rem 0; color: var(--text-muted);">Department:</td>
+                            <td style="padding: 0.5rem 0; font-weight: 600;">{{ employee.department or 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.5rem 0; color: var(--text-muted);">Designation:</td>
+                            <td style="padding: 0.5rem 0; font-weight: 600;">{{ employee.designation or 'N/A' }}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div>
+                    <h4 style="margin-bottom: 1rem; color: var(--primary-color);">Payment Details</h4>
+                    <table style="width: 100%;">
+                        <tr>
+                            <td style="padding: 0.5rem 0; color: var(--text-muted);">Payment Date:</td>
+                            <td style="padding: 0.5rem 0; font-weight: 600;">{{ payroll.payment_date.strftime('%d %B %Y') if payroll.payment_date else 'Pending' }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.5rem 0; color: var(--text-muted);">Status:</td>
+                            <td style="padding: 0.5rem 0;"><span class="badge badge-success">{{ payroll.status }}</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Salary Breakdown -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                <!-- Earnings -->
+                <div>
+                    <h4 style="margin-bottom: 1rem; background: rgba(34, 197, 94, 0.1); padding: 0.75rem; border-radius: 8px; color: var(--success-color);">Earnings</h4>
+                    <table style="width: 100%;">
+                        <tr>
+                            <td style="padding: 0.5rem 0;">Basic Salary</td>
+                            <td style="padding: 0.5rem 0; text-align: right; font-weight: 600;">₹{{ "%.2f"|format(payroll.basic_salary) }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.5rem 0;">HRA</td>
+                            <td style="padding: 0.5rem 0; text-align: right; font-weight: 600;">₹{{ "%.2f"|format(payroll.hra) }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.5rem 0;">DA</td>
+                            <td style="padding: 0.5rem 0; text-align: right; font-weight: 600;">₹{{ "%.2f"|format(payroll.da) }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.5rem 0;">TA</td>
+                            <td style="padding: 0.5rem 0; text-align: right; font-weight: 600;">₹{{ "%.2f"|format(payroll.ta) }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.5rem 0;">Medical Allowance</td>
+                            <td style="padding: 0.5rem 0; text-align: right; font-weight: 600;">₹{{ "%.2f"|format(payroll.medical_allowance) }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.5rem 0;">Other Allowances</td>
+                            <td style="padding: 0.5rem 0; text-align: right; font-weight: 600;">₹{{ "%.2f"|format(payroll.other_allowances) }}</td>
+                        </tr>
+                        <tr style="border-top: 2px solid var(--success-color);">
+                            <td style="padding: 0.75rem 0; font-weight: 700; color: var(--success-color);">Gross Salary</td>
+                            <td style="padding: 0.75rem 0; text-align: right; font-weight: 700; color: var(--success-color);">₹{{ "%.2f"|format(payroll.gross_salary) }}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <!-- Deductions -->
+                <div>
+                    <h4 style="margin-bottom: 1rem; background: rgba(239, 68, 68, 0.1); padding: 0.75rem; border-radius: 8px; color: var(--danger-color);">Deductions</h4>
+                    <table style="width: 100%;">
+                        <tr>
+                            <td style="padding: 0.5rem 0;">Provident Fund</td>
+                            <td style="padding: 0.5rem 0; text-align: right; font-weight: 600;">₹{{ "%.2f"|format(payroll.pf) }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.5rem 0;">Tax</td>
+                            <td style="padding: 0.5rem 0; text-align: right; font-weight: 600;">₹{{ "%.2f"|format(payroll.tax) }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.5rem 0;">Insurance</td>
+                            <td style="padding: 0.5rem 0; text-align: right; font-weight: 600;">₹{{ "%.2f"|format(payroll.insurance) }}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.5rem 0;">Other Deductions</td>
+                            <td style="padding: 0.5rem 0; text-align: right; font-weight: 600;">₹{{ "%.2f"|format(payroll.other_deductions) }}</td>
+                        </tr>
+                        <tr style="border-top: 2px solid var(--danger-color);">
+                            <td style="padding: 0.75rem 0; font-weight: 700; color: var(--danger-color);">Total Deductions</td>
+                            <td style="padding: 0.75rem 0; text-align: right; font-weight: 700; color: var(--danger-color);">₹{{ "%.2f"|format(payroll.pf + payroll.tax + payroll.insurance + payroll.other_deductions) }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Net Salary -->
+            <div style="background: linear-gradient(135deg, var(--primary-color), var(--accent-color)); color: white; padding: 1.5rem; border-radius: 12px; text-align: center;">
+                <h4 style="margin-bottom: 0.5rem; opacity: 0.9;">Net Salary</h4>
+                <h2 style="font-size: 2.5rem; margin: 0;">₹{{ "%.2f"|format(payroll.net_salary) }}</h2>
+                <p style="margin-top: 0.5rem; opacity: 0.9; font-size: 0.875rem;">Amount Payable</p>
+            </div>
+            
+            <!-- Footer -->
+            <div style="margin-top: 3rem; padding-top: 1.5rem; border-top: 2px solid var(--border-color); text-align: center; color: var(--text-muted);">
+                <p style="font-size: 0.875rem; margin: 0;">This is a computer-generated salary slip and does not require a signature.</p>
+                <p style="font-size: 0.875rem; margin-top: 0.5rem;">Generated on: {{ now().strftime('%d %B %Y') }}</p>
+            </div>
+        </div>
+        
+        <div class="card-footer" style="text-align: center;">
+            <button onclick="window.print()" class="btn btn-primary">🖨️ Print Salary Slip</button>
+            <a href="{{ url_for('employee.payroll') }}" class="btn btn-secondary">← Back to Payroll</a>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .navbar, .card-footer, footer, .page-header { display: none !important; }
+    .card { box-shadow: none; border: none; }
+    body { background: white; }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}My Leave Requests - Dayflow HRMS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title">My Leave Requests 📅</h1>
+        <p class="page-subtitle">Manage your leave applications</p>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Apply Leave Button -->
+    <div class="card">
+        <div class="card-body" style="text-align: center;">
+            <a href="{{ url_for('employee.apply_leave') }}" class="btn btn-primary">+ Apply for Leave</a>
+        </div>
+    </div>
+    
+    <!-- Leave Requests -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Leave History</h3>
+        </div>
+        <div class="card-body">
+            {% if leave_requests.items %}
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Leave Type</th>
+                            <th>From - To</th>
+                            <th>Days</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                            <th>Admin Comment</th>
+                            <th>Applied On</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for leave in leave_requests.items %}
+                        <tr>
+                            <td><strong>{{ leave.leave_type }}</strong></td>
+                            <td>{{ leave.start_date.strftime('%d %b %Y') }} - {{ leave.end_date.strftime('%d %b %Y') }}</td>
+                            <td><strong>{{ leave.days }}</strong></td>
+                            <td style="max-width: 250px;">{{ leave.reason }}</td>
+                            <td>
+                                <span class="badge badge-{{ 'success' if leave.status == 'Approved' else 'danger' if leave.status == 'Rejected' else 'warning' }}">
+                                    {{ leave.status }}
+                                </span>
+                            </td>
+                            <td>{{ leave.admin_comment or '-' }}</td>
+                            <td>{{ leave.created_at.strftime('%d %b %Y') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if leave_requests.pages > 1 %}
+            <div class="pagination">
+                {% if leave_requests.has_prev %}
+                <a href="{{ url_for('employee.leave', page=leave_requests.prev_num) }}" class="page-link">Previous</a>
+                {% endif %}
+                
+                {% for page in leave_requests.iter_pages() %}
+                    {% if page %}
+                    <a href="{{ url_for('employee.leave', page=page) }}" 
+                       class="page-link {{ 'active' if page == leave_requests.page else '' }}">{{ page }}</a>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if leave_requests.has_next %}
+                <a href="{{ url_for('employee.leave', page=leave_requests.next_num) }}" class="page-link">Next</a>
+                {% endif %}
+            </div>
+            {% endif %}
+            {% else %}
+            <p class="text-center text-muted">No leave requests yet. Click "Apply for Leave" to create one.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

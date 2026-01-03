@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dayflow - HRMS{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% if current_user.is_authenticated %}
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="container navbar-content">
+            <a href="{{ url_for('main.index') }}" class="navbar-brand">Dayflow</a>
+            
+            <ul class="navbar-nav">
+                {% if current_user.is_admin() %}
+                <li><a href="{{ url_for('admin.dashboard') }}" class="nav-link">Dashboard</a></li>
+                <li><a href="{{ url_for('admin.employees') }}" class="nav-link">Employees</a></li>
+                <li><a href="{{ url_for('admin.attendance') }}" class="nav-link">Attendance</a></li>
+                <li><a href="{{ url_for('admin.leave_requests') }}" class="nav-link">Leaves</a></li>
+                <li><a href="{{ url_for('admin.payroll') }}" class="nav-link">Payroll</a></li>
+                <li><a href="{{ url_for('admin.reports') }}" class="nav-link">Reports</a></li>
+                {% else %}
+                <li><a href="{{ url_for('employee.dashboard') }}" class="nav-link">Dashboard</a></li>
+                <li><a href="{{ url_for('employee.profile') }}" class="nav-link">Profile</a></li>
+                <li><a href="{{ url_for('employee.attendance') }}" class="nav-link">Attendance</a></li>
+                <li><a href="{{ url_for('employee.leave') }}" class="nav-link">Leave</a></li>
+                <li><a href="{{ url_for('employee.payroll') }}" class="nav-link">Payroll</a></li>
+                {% endif %}
+                
+                <li class="nav-dropdown">
+                    <div class="nav-dropdown-toggle">
+                        <span>👤 {{ current_user.employee.full_name if current_user.employee else current_user.employee_id }}</span>
+                    </div>
+                    <div class="nav-dropdown-menu">
+                        {% if not current_user.is_admin() %}
+                        <a href="{{ url_for('employee.profile') }}" class="dropdown-item">My Profile</a>
+                        <a href="{{ url_for('employee.notifications') }}" class="dropdown-item">Notifications</a>
+                        {% endif %}
+                        <a href="{{ url_for('auth.logout') }}" class="dropdown-item">Logout</a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    {% endif %}
+    
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="container" style="margin-top: 1rem;">
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+                <span>{% if category == 'success' %}✓{% elif category == 'error' %}✗{% else %}ℹ{% endif %}</span>
+                <span>{{ message }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endwith %}
+    
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer style="background: var(--bg-white); padding: 2rem 0; margin-top: 4rem; text-align: center; box-shadow: var(--shadow);">
+        <div class="container">
+            <p class="text-muted">&copy; 2026 Dayflow HRMS. Every workday, perfectly aligned.</p>
+        </div>
+    </footer>
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

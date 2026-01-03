@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Dayflow HRMS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title">Admin Dashboard 📊</h1>
+        <p class="page-subtitle">Overview of all HR operations</p>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon primary">👥</div>
+            <div class="stat-content">
+                <h3>{{ total_employees }}</h3>
+                <p>Total Employees</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon success">✓</div>
+            <div class="stat-content">
+                <h3>{{ today_present }}</h3>
+                <p>Present Today</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon danger">✗</div>
+            <div class="stat-content">
+                <h3>{{ today_absent }}</h3>
+                <p>Absent Today</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon warning">📅</div>
+            <div class="stat-content">
+                <h3>{{ pending_leaves }}</h3>
+                <p>Pending Leave Requests</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon info">💰</div>
+            <div class="stat-content">
+                <h3>{{ processed_payrolls }}</h3>
+                <p>Payrolls Processed</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon info">🏢</div>
+            <div class="stat-content">
+                <h3>{{ total_departments }}</h3>
+                <p>Departments</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Quick Actions</h3>
+        </div>
+        <div class="card-body" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <a href="{{ url_for('admin.mark_attendance') }}" class="btn btn-primary">📋 Mark Attendance</a>
+            <a href="{{ url_for('admin.leave_requests') }}" class="btn btn-warning">📅 Review Leaves</a>
+            <a href="{{ url_for('admin.create_payroll') }}" class="btn btn-success">💰 Create Payroll</a>
+            <a href="{{ url_for('admin.employees') }}" class="btn btn-outline">👥 Manage Employees</a>
+            <a href="{{ url_for('admin.pre_registered_employees') }}" class="btn btn-info">🔐 Pre-Register Employees</a>
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem;">
+        <!-- Recent Employees -->
+        <div class="card">
+            <div class="card-header d-flex justify-between align-center">
+                <h3 class="card-title">Recent Employees</h3>
+                <a href="{{ url_for('admin.employees') }}" class="btn btn-sm btn-outline">View All</a>
+            </div>
+            <div class="card-body">
+                {% if recent_employees %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Department</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for emp in recent_employees %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('admin.employee_detail', employee_id=emp.id) }}" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">
+                                        {{ emp.full_name }}
+                                    </a>
+                                </td>
+                                <td>{{ emp.department or 'N/A' }}</td>
+                                <td>
+                                    <span class="badge badge-{{ 'success' if emp.status == 'Active' else 'danger' }}">
+                                        {{ emp.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center">No recent employees.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Recent Leave Requests -->
+        <div class="card">
+            <div class="card-header d-flex justify-between align-center">
+                <h3 class="card-title">Recent Leave Requests</h3>
+                <a href="{{ url_for('admin.leave_requests') }}" class="btn btn-sm btn-outline">View All</a>
+            </div>
+            <div class="card-body">
+                {% if recent_leaves %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Employee</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for leave in recent_leaves %}
+                            <tr>
+                                <td>{{ leave.employee.full_name }}</td>
+                                <td>{{ leave.leave_type }}</td>
+                                <td>
+                                    <span class="badge badge-{{ 'success' if leave.status == 'Approved' else 'danger' if leave.status == 'Rejected' else 'warning' }}">
+                                        {{ leave.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted text-center">No leave requests yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Department Statistics -->
+    {% if dept_stats %}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Department-wise Employees</h3>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Department</th>
+                            <th>Employees</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dept, count in dept_stats %}
+                        <tr>
+                            <td>{{ dept or 'Unassigned' }}</td>
+                            <td><strong>{{ count }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

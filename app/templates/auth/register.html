@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Register - Dayflow HRMS{% endblock %}
+
+{% block content %}
+<div style="min-height: calc(100vh - 200px); display: flex; align-items: center; justify-content: center; padding: 2rem 0;">
+    <div class="card" style="max-width: 550px; width: 100%;">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <h1 style="color: var(--primary-color); margin-bottom: 0.5rem;">Dayflow</h1>
+            <h3 style="margin-bottom: 0.5rem;">Create Account</h3>
+            <p class="text-muted">Join Dayflow to manage your workday</p>
+        </div>
+        
+        <div class="alert alert-info" style="margin-bottom: 1.5rem;">
+            <i class="fas fa-info-circle"></i> <strong>Note:</strong> Use the Employee ID and Email provided by HR during your placement offer.
+        </div>
+        
+        <form method="POST" action="{{ url_for('auth.register') }}">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="first_name">First Name</label>
+                    <input type="text" id="first_name" name="first_name" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="last_name">Last Name</label>
+                    <input type="text" id="last_name" name="last_name" class="form-control" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="employee_id">Employee ID <span class="text-danger">*</span></label>
+                <input type="text" id="employee_id" name="employee_id" class="form-control" placeholder="As provided by HR" required>
+                <small class="form-text text-muted">Enter the exact Employee ID given to you</small>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="email">Email Address <span class="text-danger">*</span></label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="As provided by HR" required>
+                <small class="form-text text-muted">Use the official email registered with HR</small>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <input type="password" id="password" name="password" class="form-control" minlength="8" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="confirm_password">Confirm Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" class="form-control" minlength="8" required>
+                </div>
+            </div>
+            
+            <p class="text-muted" style="font-size: 0.875rem; margin-bottom: 1.5rem;">
+                Password must be at least 8 characters long
+            </p>
+            
+            <button type="submit" class="btn btn-primary w-100">Create Account</button>
+            
+            <p style="text-align: center; margin-top: 1.5rem; color: var(--text-secondary);">
+                Already have an account? 
+                <a href="{{ url_for('auth.login') }}" style="color: var(--primary-color); font-weight: 600;">Sign In</a>
+            </p>
+        </form>
+    </div>
+</div>
+{% endblock %}

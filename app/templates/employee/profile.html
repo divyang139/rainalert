@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile - Dayflow HRMS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title">My Profile</h1>
+        <p class="page-subtitle">View and manage your personal information</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="card">
+        <div class="card-header d-flex justify-between align-center">
+            <h3 class="card-title">Profile Information</h3>
+            <a href="{{ url_for('employee.edit_profile') }}" class="btn btn-primary btn-sm">Edit Profile</a>
+        </div>
+        
+        <div class="card-body">
+            <div style="display: grid; grid-template-columns: 200px 1fr; gap: 2rem;">
+                <div style="text-align: center;">
+                    <img src="{{ url_for('static', filename='uploads/' + (employee.profile_photo or 'default.jpg')) }}" 
+                         alt="Profile Photo" 
+                         style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid var(--primary-color);"
+                         onerror="this.src='https://via.placeholder.com/150?text=No+Photo'">
+                    <p style="margin-top: 1rem; font-weight: 600;">{{ employee.full_name }}</p>
+                    <p class="text-muted">{{ employee.user.employee_id }}</p>
+                </div>
+                
+                <div>
+                    <h4 style="margin-bottom: 1rem; color: var(--primary-color);">Personal Information</h4>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem;">
+                        <div>
+                            <label class="text-muted" style="font-size: 0.875rem;">First Name</label>
+                            <p style="font-weight: 600;">{{ employee.first_name }}</p>
+                        </div>
+                        <div>
+                            <label class="text-muted" style="font-size: 0.875rem;">Last Name</label>
+                            <p style="font-weight: 600;">{{ employee.last_name }}</p>
+                        </div>
+                        <div>
+                            <label class="text-muted" style="font-size: 0.875rem;">Email</label>
+                            <p style="font-weight: 600;">{{ employee.user.email }}</p>
+                        </div>
+                        <div>
+                            <label class="text-muted" style="font-size: 0.875rem;">Phone</label>
+                            <p style="font-weight: 600;">{{ employee.phone or 'Not provided' }}</p>
+                        </div>
+                        <div>
+                            <label class="text-muted" style="font-size: 0.875rem;">Gender</label>
+                            <p style="font-weight: 600;">{{ employee.gender or 'Not provided' }}</p>
+                        </div>
+                        <div>
+                            <label class="text-muted" style="font-size: 0.875rem;">Date of Birth</label>
+                            <p style="font-weight: 600;">{{ employee.date_of_birth.strftime('%d %B %Y') if employee.date_of_birth else 'Not provided' }}</p>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 1.5rem;">
+                        <label class="text-muted" style="font-size: 0.875rem;">Address</label>
+                        <p style="font-weight: 600;">{{ employee.address or 'Not provided' }}</p>
+                    </div>
+                    
+                    <h4 style="margin-top: 2rem; margin-bottom: 1rem; color: var(--primary-color);">Job Information</h4>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem;">
+                        <div>
+                            <label class="text-muted" style="font-size: 0.875rem;">Department</label>
+                            <p style="font-weight: 600;">{{ employee.department or 'Not assigned' }}</p>
+                        </div>
+                        <div>
+                            <label class="text-muted" style="font-size: 0.875rem;">Designation</label>
+                            <p style="font-weight: 600;">{{ employee.designation or 'Not assigned' }}</p>
+                        </div>
+                        <div>
+                            <label class="text-muted" style="font-size: 0.875rem;">Employment Type</label>
+                            <p style="font-weight: 600;">{{ employee.employment_type or 'Not specified' }}</p>
+                        </div>
+                        <div>
+                            <label class="text-muted" style="font-size: 0.875rem;">Date of Joining</label>
+                            <p style="font-weight: 600;">{{ employee.date_of_joining.strftime('%d %B %Y') if employee.date_of_joining else 'Not provided' }}</p>
+                        </div>
+                        <div>
+                            <label class="text-muted" style="font-size: 0.875rem;">Status</label>
+                            <p><span class="badge badge-{{ 'success' if employee.status == 'Active' else 'danger' }}">{{ employee.status }}</span></p>
+                        </div>
+                        <div>
+                            <label class="text-muted" style="font-size: 0.875rem;">Role</label>
+                            <p><span class="badge badge-primary">{{ employee.user.role }}</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

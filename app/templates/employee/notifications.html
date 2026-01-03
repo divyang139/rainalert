@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications - Dayflow HRMS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title">Notifications 🔔</h1>
+        <p class="page-subtitle">Stay updated with important information</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="card">
+        <div class="card-body">
+            {% if notifications.items %}
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                {% for notif in notifications.items %}
+                <div class="alert alert-{{ notif.type }}" style="position: relative; {{ 'opacity: 0.7;' if notif.is_read else '' }}">
+                    <div style="flex: 1;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                            <strong style="font-size: 1.1rem;">{{ notif.title }}</strong>
+                            {% if not notif.is_read %}
+                            <span class="badge badge-primary" style="margin-left: 1rem;">New</span>
+                            {% endif %}
+                        </div>
+                        <p style="margin: 0.5rem 0;">{{ notif.message }}</p>
+                        <small class="text-muted">{{ notif.created_at.strftime('%d %B %Y, %I:%M %p') }}</small>
+                        
+                        {% if not notif.is_read %}
+                        <form method="POST" action="{{ url_for('employee.mark_notification_read', notification_id=notif.id) }}" style="margin-top: 0.75rem;">
+                            <button type="submit" class="btn btn-sm btn-outline">Mark as Read</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            {% if notifications.pages > 1 %}
+            <div class="pagination" style="margin-top: 2rem;">
+                {% if notifications.has_prev %}
+                <a href="{{ url_for('employee.notifications', page=notifications.prev_num) }}" class="page-link">Previous</a>
+                {% endif %}
+                
+                {% for page in notifications.iter_pages() %}
+                    {% if page %}
+                    <a href="{{ url_for('employee.notifications', page=page) }}" 
+                       class="page-link {{ 'active' if page == notifications.page else '' }}">{{ page }}</a>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if notifications.has_next %}
+                <a href="{{ url_for('employee.notifications', page=notifications.next_num) }}" class="page-link">Next</a>
+                {% endif %}
+            </div>
+            {% endif %}
+            {% else %}
+            <div style="text-align: center; padding: 3rem;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">🔔</div>
+                <h3 style="color: var(--text-muted);">No notifications yet</h3>
+                <p class="text-muted">You're all caught up!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

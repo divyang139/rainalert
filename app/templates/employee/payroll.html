@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}My Payroll - Dayflow HRMS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title">My Payroll 💰</h1>
+        <p class="page-subtitle">View your salary information</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Salary History</h3>
+        </div>
+        <div class="card-body">
+            {% if payroll_records.items %}
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Month/Year</th>
+                            <th>Basic Salary</th>
+                            <th>Allowances</th>
+                            <th>Gross Salary</th>
+                            <th>Deductions</th>
+                            <th>Net Salary</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payroll in payroll_records.items %}
+                        <tr>
+                            <td><strong>{{ ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][payroll.month-1] }} {{ payroll.year }}</strong></td>
+                            <td>₹{{ "%.2f"|format(payroll.basic_salary) }}</td>
+                            <td>₹{{ "%.2f"|format(payroll.hra + payroll.da + payroll.ta + payroll.medical_allowance + payroll.other_allowances) }}</td>
+                            <td><strong>₹{{ "%.2f"|format(payroll.gross_salary) }}</strong></td>
+                            <td>₹{{ "%.2f"|format(payroll.pf + payroll.tax + payroll.insurance + payroll.other_deductions) }}</td>
+                            <td class="text-success"><strong>₹{{ "%.2f"|format(payroll.net_salary) }}</strong></td>
+                            <td>
+                                <span class="badge badge-{{ 'success' if payroll.status == 'Processed' else 'info' if payroll.status == 'Paid' else 'warning' }}">
+                                    {{ payroll.status }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('employee.payroll_slip', payroll_id=payroll.id) }}" class="btn btn-sm btn-primary">View Slip</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if payroll_records.pages > 1 %}
+            <div class="pagination">
+                {% if payroll_records.has_prev %}
+                <a href="{{ url_for('employee.payroll', page=payroll_records.prev_num) }}" class="page-link">Previous</a>
+                {% endif %}
+                
+                {% for page in payroll_records.iter_pages() %}
+                    {% if page %}
+                    <a href="{{ url_for('employee.payroll', page=page) }}" 
+                       class="page-link {{ 'active' if page == payroll_records.page else '' }}">{{ page }}</a>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if payroll_records.has_next %}
+                <a href="{{ url_for('employee.payroll', page=payroll_records.next_num) }}" class="page-link">Next</a>
+                {% endif %}
+            </div>
+            {% endif %}
+            {% else %}
+            <p class="text-center text-muted">No payroll records available yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
