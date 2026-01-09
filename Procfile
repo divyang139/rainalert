@@ -1,1 +1,1 @@
-web: gunicorn run:app
+worker: python telethon_nigeria_monitor.py
