@@ -9,7 +9,7 @@ from telethon import TelegramClient, events
 from telethon.errors import RPCError
 
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.WARNING,
     format="%(asctime)s %(levelname)s %(message)s",
 )
 
@@ -193,8 +193,19 @@ def format_message(raw_text: str, source_display: str, msg_timestamp: str) -> st
     
     user_count_line = f"👥 Total Users: {user_count}\n" if user_count > 0 else ""
     
+    # Check if amount per user is 500 INR or more
+    rain_emoji = "🌧"
+    header_text = ""
+    inr_amount_match = re.search(r"₹\s?([\d,]+(?:\.\d+)?)", amount_with_inr)
+    if inr_amount_match:
+        inr_value = float(inr_amount_match.group(1).replace(",", ""))
+        if inr_value >= 500:
+            rain_emoji = "🌧"
+            header_text = "🔥Big Rain🔥\n"
+    
     return (
-        f"💧 RAIN ALERT — {country.upper()} {flag}\n\n"
+        f"{header_text}"
+        f"{rain_emoji} RAIN ALERT — {country.upper()} {flag}\n\n"
         f"💵 Amount per User: {amount_with_inr}\n"
         f"{user_count_line}\n"
         # f"⏰ Time: {msg_timestamp}\n\n"
@@ -215,20 +226,23 @@ def register_event_handler(client: TelegramClient, source_channel: str, target_c
     @client.on(events.NewMessage(chats=source_channel))
     async def handler(event):
         if not event.raw_text:
-            logging.debug("Skipping non-text message: id=%s", event.message.id)
             return
 
         text = event.raw_text
         if not is_nigeria_alert(text):
-            logging.info("Ignored Regional alert: id=%s", event.message.id)
             return
 
         message_key = (event.message.chat_id, event.message.id)
         if message_key in processed_messages:
-            logging.debug("Duplicate message skipped: %s", message_key)
             return
 
         processed_messages.add(message_key)
+        
+        # Limit cache size to prevent memory leaks
+        if len(processed_messages) > 500:
+            oldest_items = list(processed_messages)[:100]
+            for item in oldest_items:
+                processed_messages.discard(item)
 
         timestamp = ensure_timestamp_string(event.message.date)
         outbound_message = format_message(text, source_display, timestamp)
@@ -238,13 +252,13 @@ def register_event_handler(client: TelegramClient, source_channel: str, target_c
         country_name, _, _ = resolve_context(keyword_hits)
 
         try:
+            # Add delay to reduce spam/ban risk
+            await asyncio.sleep(1.5)
             await client.send_message(target_channel, outbound_message, parse_mode="html")
         except RPCError as exc:
             logging.error("Failed to forward alert id=%s: %s", event.message.id, exc)
             processed_messages.discard(message_key)
             return
-
-        logging.info("Forwarded %s alert: id=%s", country_name, event.message.id)
 
 
 def main() -> None:
@@ -271,17 +285,12 @@ def main() -> None:
         await client.start()
         await client.get_entity(source_channel)
         await client.get_entity(target_channel)
-        logging.info(
-            "Listening for rain alerts from %s and forwarding to %s",
-            source_display,
-            target_display,
-        )
         await client.run_until_disconnected()
 
     try:
         asyncio.run(runner())
     except KeyboardInterrupt:
-        logging.info("Shutdown requested by user")
+        pass
     finally:
         if not client.is_connected():
             client.disconnect()

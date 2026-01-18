@@ -37,9 +37,18 @@ instance/
 # Environment variables
 .env
 .env.local
+.env.userbot
 
 # Email credentials (NEVER commit these)
 config_local.py
+
+# Telegram userbot files (NEVER commit these - contain credentials/session)
+userbot_session.session
+userbot_session.session-journal
+scheduled_sender.session
+scheduled_sender.session-journal
+*.session
+*.session-journal
 
 # Utility scripts (optional - can be committed)
 # create_admin.py

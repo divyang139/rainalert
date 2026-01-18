@@ -1,0 +1,16 @@
+[Unit]
+Description=Telethon Nigeria Rain Monitor
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/telegram-monitor
+Environment="PATH=/opt/telegram-monitor/venv/bin"
+EnvironmentFile=/opt/telegram-monitor/.env
+ExecStart=/opt/telegram-monitor/venv/bin/python3 /opt/telegram-monitor/telethon_nigeria_monitor.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
