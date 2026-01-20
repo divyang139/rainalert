@@ -102,11 +102,11 @@ def resolve_context(matched: Set[str]) -> Tuple[str, str, str]:
 
 
 def convert_usd_to_inr(amount_str: str, currency: str = "") -> str:
-    """Convert USD amount to INR with approximate rate (1 USD = 85 INR)"""
+    """Convert USD amount to INR with approximate rate (1 USD = 91 INR)"""
     usd_match = re.search(r"\$\s?([\d,]+(?:\.\d+)?)", amount_str)
     if usd_match:
         usd_value = float(usd_match.group(1).replace(",", ""))
-        inr_value = usd_value * 89.9
+        inr_value = usd_value * 91
         currency_suffix = f" {currency}" if currency else ""
         return f"₹{inr_value:,.2f} (${usd_value:,.2f}){currency_suffix}"
     return amount_str
