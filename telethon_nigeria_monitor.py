@@ -1,9 +1,13 @@
 import asyncio
+import json
 import logging
 import os
 import re
+import time
 from datetime import timedelta, timezone
 from typing import Set, Tuple
+from urllib.error import URLError
+from urllib.request import urlopen
 
 from telethon import TelegramClient, events
 from telethon.errors import RPCError
@@ -101,12 +105,39 @@ def resolve_context(matched: Set[str]) -> Tuple[str, str, str]:
     return DEFAULT_CONTEXT
 
 
+USD_INR_CACHE_TTL_SECONDS = 300
+USD_INR_CACHE: dict = {"rate": None, "fetched_at": 0.0}
+
+
+def get_usd_to_inr_rate() -> float:
+    """Fetch live USD->INR rate with caching and fallback."""
+    now = time.time()
+    cached_rate = USD_INR_CACHE.get("rate")
+    fetched_at = USD_INR_CACHE.get("fetched_at", 0.0)
+    if cached_rate and (now - fetched_at) < USD_INR_CACHE_TTL_SECONDS:
+        return cached_rate
+
+    try:
+        with urlopen("https://open.er-api.com/v6/latest/USD", timeout=5) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+        rate = payload.get("rates", {}).get("INR")
+        if isinstance(rate, (int, float)) and rate > 0:
+            USD_INR_CACHE["rate"] = float(rate)
+            USD_INR_CACHE["fetched_at"] = now
+            return float(rate)
+    except (URLError, ValueError, json.JSONDecodeError) as exc:
+        logging.warning("Failed to fetch USD/INR rate, using fallback: %s", exc)
+
+    return 91.0
+
+
 def convert_usd_to_inr(amount_str: str, currency: str = "") -> str:
-    """Convert USD amount to INR with approximate rate (1 USD = 91 INR)"""
+    """Convert USD amount to INR with live rate."""
     usd_match = re.search(r"\$\s?([\d,]+(?:\.\d+)?)", amount_str)
     if usd_match:
         usd_value = float(usd_match.group(1).replace(",", ""))
-        inr_value = usd_value * 91
+        rate = get_usd_to_inr_rate()
+        inr_value = usd_value * rate
         currency_suffix = f" {currency}" if currency else ""
         return f"₹{inr_value:,.2f} (${usd_value:,.2f}){currency_suffix}"
     return amount_str
