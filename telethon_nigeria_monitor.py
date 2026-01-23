@@ -110,7 +110,7 @@ USD_INR_CACHE: dict = {"rate": None, "fetched_at": 0.0}
 
 
 def get_usd_to_inr_rate() -> float:
-    """Fetch live USD->INR rate with caching and fallback."""
+    """Fetch live USD->INR rate from Google Finance."""
     now = time.time()
     cached_rate = USD_INR_CACHE.get("rate")
     fetched_at = USD_INR_CACHE.get("fetched_at", 0.0)
@@ -118,15 +118,21 @@ def get_usd_to_inr_rate() -> float:
         return cached_rate
 
     try:
-        with urlopen("https://open.er-api.com/v6/latest/USD", timeout=5) as response:
-            payload = json.loads(response.read().decode("utf-8"))
-        rate = payload.get("rates", {}).get("INR")
-        if isinstance(rate, (int, float)) and rate > 0:
-            USD_INR_CACHE["rate"] = float(rate)
+        from urllib.request import Request
+        req = Request("https://www.google.com/finance/quote/USD-INR", 
+                     headers={"User-Agent": "Mozilla/5.0"})
+        with urlopen(req, timeout=5) as response:
+            html = response.read().decode("utf-8")
+        
+        # Extract rate from Google Finance
+        match = re.search(r"data-last-price=\"([\d.]+)\"", html)
+        if match:
+            rate = float(match.group(1))
+            USD_INR_CACHE["rate"] = rate
             USD_INR_CACHE["fetched_at"] = now
-            return float(rate)
-    except (URLError, ValueError, json.JSONDecodeError) as exc:
-        logging.warning("Failed to fetch USD/INR rate, using fallback: %s", exc)
+            return rate
+    except Exception as exc:
+        logging.warning("Failed to fetch from Google, using fallback: %s", exc)
 
     return 91.0
 
@@ -329,3 +335,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
