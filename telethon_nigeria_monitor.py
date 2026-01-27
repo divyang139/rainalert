@@ -204,7 +204,7 @@ def extract_detail_lines(text: str) -> Tuple[str, int, str]:
                 users_list = [u.strip() for u in users_part.split(",") if u.strip()]
                 user_count = len(users_list)
                 # Format users as clean bulleted list
-                formatted_users = "\n".join([f"   • {user}" for user in users_list])
+                formatted_users = "\n".join([f"   • <b>{user}</b>" for user in users_list])
                 users_line = f"👤 Users:\n{formatted_users}"
     
     # Return users first, then by
