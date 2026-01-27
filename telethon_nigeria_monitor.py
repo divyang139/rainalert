@@ -110,7 +110,7 @@ USD_INR_CACHE: dict = {"rate": None, "fetched_at": 0.0}
 
 
 def get_usd_to_inr_rate() -> float:
-    """Fetch live USD->INR rate from Google Finance."""
+    """Fetch live USD->INR rate with caching and fallback."""
     now = time.time()
     cached_rate = USD_INR_CACHE.get("rate")
     fetched_at = USD_INR_CACHE.get("fetched_at", 0.0)
@@ -118,21 +118,15 @@ def get_usd_to_inr_rate() -> float:
         return cached_rate
 
     try:
-        from urllib.request import Request
-        req = Request("https://www.google.com/finance/quote/USD-INR", 
-                     headers={"User-Agent": "Mozilla/5.0"})
-        with urlopen(req, timeout=5) as response:
-            html = response.read().decode("utf-8")
-        
-        # Extract rate from Google Finance
-        match = re.search(r"data-last-price=\"([\d.]+)\"", html)
-        if match:
-            rate = float(match.group(1))
-            USD_INR_CACHE["rate"] = rate
+        with urlopen("https://open.er-api.com/v6/latest/USD", timeout=5) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+        rate = payload.get("rates", {}).get("INR")
+        if isinstance(rate, (int, float)) and rate > 0:
+            USD_INR_CACHE["rate"] = float(rate)
             USD_INR_CACHE["fetched_at"] = now
-            return rate
-    except Exception as exc:
-        logging.warning("Failed to fetch from Google, using fallback: %s", exc)
+            return float(rate)
+    except (URLError, ValueError, json.JSONDecodeError) as exc:
+        logging.warning("Failed to fetch USD/INR rate, using fallback: %s", exc)
 
     return 91.0
 
@@ -187,26 +181,31 @@ def clean_message(text: str) -> str:
     return "\n".join(line for line in cleaned_lines if line.strip())
 
 
-def extract_detail_lines(text: str) -> Tuple[str, int]:
+def extract_detail_lines(text: str) -> Tuple[str, int, str]:
     by_line = None
     users_line = None
     user_count = 0
+    users_list = []
     
     for line in text.splitlines():
         stripped = line.strip()
-        if stripped.startswith("🎁"):
-            by_line = "🎯" + stripped[1:]
+        if stripped.startswith("🎁") or stripped.lower().startswith("by:"):
+            # Extract just the "By: rain-bot" part
+            by_text = stripped.replace("🎁", "").strip()
+            if by_text.lower().startswith("by:"):
+                by_line = f"🎯 {by_text}"
+            else:
+                by_line = f"🎯 By: {by_text}"
         elif stripped.startswith("👥"):
-            # Format users as bulleted list with bold names
+            # Extract users from "👥 Users: name1, name2, name3..."
             users_text = stripped[1:].strip()
             if ":" in users_text:
                 label, users_part = users_text.split(":", 1)
-                users_list = [u.strip() for u in users_part.split(",")]
+                users_list = [u.strip() for u in users_part.split(",") if u.strip()]
                 user_count = len(users_list)
-                formatted_users = "\n".join([f"   • <b>{user}</b>" for user in users_list])
-                users_line = f"👤 {label}:\n{formatted_users}"
-            else:
-                users_line = "👤" + stripped[1:]
+                # Format users as clean bulleted list
+                formatted_users = "\n".join([f"   • {user}" for user in users_list])
+                users_line = f"👤 Users:\n{formatted_users}"
     
     # Return users first, then by
     result = []
@@ -214,7 +213,7 @@ def extract_detail_lines(text: str) -> Tuple[str, int]:
         result.append(users_line)
     if by_line:
         result.append(by_line)
-    return "\n\n".join(result), user_count
+    return "\n\n".join(result), user_count, ", ".join(users_list) if users_list else ""
 
 
 def format_message(raw_text: str, source_display: str, msg_timestamp: str) -> str:
@@ -224,28 +223,15 @@ def format_message(raw_text: str, source_display: str, msg_timestamp: str) -> st
     amount_with_inr = convert_usd_to_inr(amount, currency)
     keyword_hits = matched_keywords(raw_text)
     country, flag, _audience = resolve_context(keyword_hits)
-    detail_block, user_count = extract_detail_lines(raw_text)
-    if not detail_block:
-        detail_block = cleaned_text
+    detail_block, user_count, users_str = extract_detail_lines(raw_text)
     
-    user_count_line = f"👥 Total Users: {user_count}\n" if user_count > 0 else ""
-    
-    # Check if amount per user is 500 INR or more
-    rain_emoji = "🌧"
-    header_text = ""
-    inr_amount_match = re.search(r"₹\s?([\d,]+(?:\.\d+)?)", amount_with_inr)
-    if inr_amount_match:
-        inr_value = float(inr_amount_match.group(1).replace(",", ""))
-        if inr_value >= 500:
-            rain_emoji = "🌧"
-            header_text = "🔥Big Rain🔥\n"
+    # Clean user count line - only show if we have users
+    user_count_line = f"👥 Total Users: {user_count}" if user_count > 0 else ""
     
     return (
-        f"{header_text}"
-        f"{rain_emoji} RAIN ALERT — {country.upper()} {flag}\n\n"
+        f"🌧 RAIN ALERT — {country.upper()} {flag}\n\n"
         f"💵 Amount per User: {amount_with_inr}\n"
-        f"{user_count_line}\n"
-        # f"⏰ Time: {msg_timestamp}\n\n"
+        f"{user_count_line}\n\n"
         f"{detail_block}"
     )
 
@@ -335,4 +321,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
