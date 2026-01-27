@@ -27,7 +27,8 @@ NIGERIA_TERMS = [
     "hausa",
     "urdu",
     "hindi",
-   
+    "india",
+    "pakistan"
 ]
 
 def _term_to_pattern(term: str) -> re.Pattern:
